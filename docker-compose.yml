@@ -1,0 +1,91 @@
+# =============================================================================
+# TENDER INSIGHT HUB - DOCKER COMPOSE CONFIGURATION
+# =============================================================================
+# Project: TIH-2025-001
+# Purpose: Multi-service orchestration for local development and testing
+# Services: FastAPI app, PostgreSQL, MongoDB, Redis, and monitoring tools
+
+version: '3.8'
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  tih-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =============================================================================
+# VOLUMES FOR DATA PERSISTENCE
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local
+
+# =============================================================================
+# SERVICES
+# =============================================================================
+services:
+  
+  # ===========================================================================
+  # MAIN APPLICATION SERVICE
+  # ===========================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_VERSION: "1.0.0"
+        BUILD_DATE: "${BUILD_DATE:-2025-08-10}"
+        VCS_REF: "${VCS_REF:-main}"
+    container_name: tih-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://tih_user:tih_password@postgres:5432/tender_insight_hub
+      - MONGODB_URL=mongodb://tih_mongo:tih_mongo_password@mongodb:27017/tender_analytics
+      - REDIS_URL=redis://:tih_redis_password@redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+      - logs_data:/app/logs
+      # Mount source code for development (comment out for production)
+      - .:/app
+    networks:
+      - tih-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ===========================================================================
+  # POSTGRESQL DATABASE
+  # ===========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: tih-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:
