@@ -546,4 +546,5 @@ This specification covers all system requirements derived from the original proj
 - **Last Updated:** 10 August 2025
 - **Next Review:** [10 August + 2 weeks]
 - **Approved By:** S. Mthembu
-- **Distribution:** All team members [], course instructor[]
+- **Distribution:** Team Members [ Ashwill Herman,Koketso Kgogo,Khethiwe Skosana,Onthatile Kilelo,Sinethemba Mthembu ], Course  Lecturer [Slias Verkijika]
+
